@@ -11,3 +11,6 @@ Output:
  - value
  - analysis of value data (String length/Array size)
  - Arrays and Object are displayed in tables, which enhance the readability
+ 
+[view full size](https://github.com/Kimor/dump/blob/develop/array.png)
+
