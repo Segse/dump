@@ -19,8 +19,9 @@
  * @version 0.3 beta
  * @date 2013.07.30
  * 
- * @todo 25 issues
+ * @todo 26 issues
  * 
+ * @todo new regExp delimiter or back to iso
  * @todo check if colgroup and col is usefull
  * @todo add manual
  * @todo trace Called from APP_PATH\test.php, line 26
@@ -77,7 +78,7 @@ class Dump
 	 * 
 	 * @var Array $whiteList array('127.0.0.1') localhost by default
 	 */
-	private $whiteList = array('127.0.0.1');
+	private $whiteList = array('127.0.0.1', '::1');
 
 	/**
 	 * hold if html entities shall be encoded
@@ -212,7 +213,7 @@ class Dump
 	 */
 	public function setWhiteList($ip)
 	{
-		$this->whiteList = $ip;
+		$this->whiteList = array_merge($this->whiteList, $ip);
 	}
 
 	/**
@@ -430,7 +431,7 @@ class Dump
 			'classConst' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::' . $varNameSymbol . '+/',
 			'staticProp' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::\$' . $varNameSymbol . '+/',
 			'prop' => '/(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+->\$?' . $varNameSymbol . '+/',
-			'arrVal' => '§(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+(\[\'.*\'\]|\[".*"\]|\[[0-9]+\])*§',
+			'arrVal' => '#(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+(\[\'.*\'\]|\[".*"\]|\[[0-9]+\])*#',
 			'localGlobal' => '/(?<=' . $this->funcName . '\()\$(' . $varNameSymbol . '+)/',
 			'globalConst' => '/(?<=' . $this->funcName . '\()(?<=\()' . $varNameSymbol . '+/',
 			'val' => '/(?<=' . $this->funcName . '\().*/',
@@ -868,8 +869,8 @@ class Dump
 		$str = '';
 		if(is_array($attr)){
 			foreach($attr as $key => $value){
-				if(preg_match('§^<' . $char . $key . '="' . $char . '>§', $tag)){
-					$tag = preg_replace('§' . $key . '="§', $key . '="' . $value . ' ', $tag, 1);
+				if(preg_match('#^<' . $char . $key . '="' . $char . '>#', $tag)){
+					$tag = preg_replace('#' . $key . '="#', $key . '="' . $value . ' ', $tag, 1);
 				}
 				else{
 					$str.= ' ' . $key . '="';
@@ -890,7 +891,7 @@ class Dump
 				}
 			}
 		}
-		return preg_replace('§>§', $str . '>', $tag, 1);
+		return preg_replace('#>#', $str . '>', $tag, 1);
 	}
 
 	/**
@@ -904,7 +905,7 @@ class Dump
 	 */
 	private function appendContent($tag, $content)
 	{
-		return preg_replace('§</(?=[a-zA-Z]+>$)§', $content . '</', $tag);
+		return preg_replace('#</(?=[a-zA-Z]+>$)#', $content . '</', $tag);
 	}
 
 	/**
@@ -918,8 +919,8 @@ class Dump
 	 */
 	private function prependContent($tag, $content)
 	{
-		preg_match('§^<[a-zA-Z ="0-9_-]+>§', $tag, $match);
-		return preg_replace('§^' . $match[0] . '§', $match[0] . $content, $tag);
+		preg_match('#^<[a-zA-Z ="0-9_-]+>#', $tag, $match);
+		return preg_replace('#^' . $match[0] . '#', $match[0] . $content, $tag);
 	}
 
 	/**
@@ -1174,7 +1175,7 @@ function dump($var, $encodeHtmlEntities = TRUE)
 {
 	$Dump = new Dump();
 	$Dump->setFuncName('dump');
-	$Dump->setWhiteList(array('127.0.0.1', '92.198.9.250', '92.198.9.254', '83.236.130.130', '195.71.148.194', '212.202.156.218'));
+	$Dump->setWhiteList(array('127.0.0.1', '::1', '92.198.9.250', '92.198.9.254', '83.236.130.130', '195.71.148.194', '212.202.156.218'));
 	$Dump->setEncodeHtmlEntities($encodeHtmlEntities);
 	$re = $Dump->varDump($var);
 	unset($Dump);

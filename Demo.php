@@ -62,23 +62,23 @@ ini_set('error_reporting', E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_WARNING & ~E_S
  */
 require_once 'Dump.php';
 
-$GLOBAsLS['asdfa']["asd"][12] = 1;
-dump($GLOBAsLS['asdfa']["asd"][12]);
-var_dump($GLOBALS);
+//$GLOBAsLS['asdfa']["asd"][12] = 1;
+//dump($GLOBAsLS['asdfa']["asd"][12]);
+//var_dump($GLOBALS);
 //var_dump($GLOBALS['asdfa']);
 //var_dump($GLOBALS['asdfa']["asd"]);
 //var_dump($GLOBALS['asdfa']["asd"][12]);
 //var_dump(eval('echo $GLOBALS[\'asdfa\']["asd"][12];'));
-exit;
+//exit;
 /*
  * test cases
  */
-//demoNull();
+demoNull();
 //demoBool();
 //demoInt();
 //demoFloat();
 //demoStr();
-//demoArr();
+demoArr();
 //demoObj();
 //demoRes();
 //demoConst();
