@@ -14,45 +14,44 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /**
- * handles var dump
+ * handles variable dump
  * 
  * @version 0.3 beta
- * @date 2013.07.29
+ * @date 2013.07.30
  * 
- * @todo 26 + !1! issues
- * @todo PRIORITIZE TODOs !!!111einself
+ * @todo 25 issues
  * 
  * @todo check if colgroup and col is usefull
- * @todo add function_exist
  * @todo add manual
  * @todo trace Called from APP_PATH\test.php, line 26
- * @todo sql query detection and coloring
  * @todo merge gobal local und arrVal $GLOBAL und global test cases und class prop array dump case und erkennung
- * @todo floating box button inside dump expand collapse all foreach array object inside themself
- * @todo refactor methods and validations
+ * @todo improve global local var check and test cases, $_  global
+ * @todo arr[asdf] erkennen und dumpen
  * @todo obj dump add function and () to public mehtod and prop
+ * @todo static class test cases and props
+ * @todo varname composed of variables check and display correct and theirs values
+ * @todo floating box button inside dump expand collapse all foreach array object inside themself
+ * @todo cookie/localstorage flag if array was collapsed and collapse it again after refresh
+ * @todo netbeans code color (varname)
+ * @todo sql query detection and coloring + test cases
+ * @todo pimp resource dump and more and different test cases for resource type
  * @todo varname test cases
  * @todo lambda test cases
  * @todo closure test cases
- * @todo improve global local var check and test cases, $_  global
- * @todo arr[asdf] erkennen und dumpen
- * @todo add private properties to object dump and test cases
- * @todo add private methods to object dump and test cases
- * @todo add method body to object dump and test cases
- * @todo class abstract, final implement interface, trait, namespace check and test cases
- * @todo pimp resource dump and more and different test cases for resource type
- * @todo test cases for var name
- * @todo varname composed of variables check and display correct and theirs values
- * @todo dump process optimize
  * @todo xml dump and test cases
- * @todo static class test cases and props
+ * @todo class abstract, final implement interface, trait, namespace check and test cases
+ * @todo add method body to object dump and test cases
+ * @todo add private methods to object dump and test cases
+ * @todo add private properties to object dump and test cases
  * @todo multiple wert zuweisung ermoeglchen auch bis zu local
- * @todo cookie/localstorage flag if array was collapsed and collapse it again after refresh
+ * 
+ * @todo refactor methods and validations
+ * @todo dump process optimize
  *
  * @author Mirko Krotzek <mirko.krotzek@googlemail.com>
- * $package: debug $
- * $subpackage: dump $
- * $method: class $
+ * @package debug
+ * @subpackage dump
+ * @method class
  */
 class Dump
 {
@@ -431,7 +430,7 @@ class Dump
 			'classConst' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::' . $varNameSymbol . '+/',
 			'staticProp' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::\$' . $varNameSymbol . '+/',
 			'prop' => '/(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+->\$?' . $varNameSymbol . '+/',
-			'arrVal' => 'ง(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+(\[\'.*\'\]|\[".*"\]|\[[0-9]+\])*ง',
+			'arrVal' => 'ยง(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+(\[\'.*\'\]|\[".*"\]|\[[0-9]+\])*ยง',
 			'localGlobal' => '/(?<=' . $this->funcName . '\()\$(' . $varNameSymbol . '+)/',
 			'globalConst' => '/(?<=' . $this->funcName . '\()(?<=\()' . $varNameSymbol . '+/',
 			'val' => '/(?<=' . $this->funcName . '\().*/',
@@ -869,8 +868,8 @@ class Dump
 		$str = '';
 		if(is_array($attr)){
 			foreach($attr as $key => $value){
-				if(preg_match('ง^<' . $char . $key . '="' . $char . '>ง', $tag)){
-					$tag = preg_replace('ง' . $key . '="ง', $key . '="' . $value . ' ', $tag, 1);
+				if(preg_match('ยง^<' . $char . $key . '="' . $char . '>ยง', $tag)){
+					$tag = preg_replace('ยง' . $key . '="ยง', $key . '="' . $value . ' ', $tag, 1);
 				}
 				else{
 					$str.= ' ' . $key . '="';
@@ -891,7 +890,7 @@ class Dump
 				}
 			}
 		}
-		return preg_replace('ง>ง', $str . '>', $tag, 1);
+		return preg_replace('ยง>ยง', $str . '>', $tag, 1);
 	}
 
 	/**
@@ -905,7 +904,7 @@ class Dump
 	 */
 	private function appendContent($tag, $content)
 	{
-		return preg_replace('ง</(?=[a-zA-Z]+>$)ง', $content . '</', $tag);
+		return preg_replace('ยง</(?=[a-zA-Z]+>$)ยง', $content . '</', $tag);
 	}
 
 	/**
@@ -919,8 +918,8 @@ class Dump
 	 */
 	private function prependContent($tag, $content)
 	{
-		preg_match('ง^<[a-zA-Z ="0-9_-]+>ง', $tag, $match);
-		return preg_replace('ง^' . $match[0] . 'ง', $match[0] . $content, $tag);
+		preg_match('ยง^<[a-zA-Z ="0-9_-]+>ยง', $tag, $match);
+		return preg_replace('ยง^' . $match[0] . 'ยง', $match[0] . $content, $tag);
 	}
 
 	/**
