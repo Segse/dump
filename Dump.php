@@ -473,14 +473,14 @@ class Dump
 		}
 		else if(preg_match($varType['arrVal'], $subject, $match)){
 			if(eval('return ' . $match[0] . ';') === $val){
-				echo 'glob';
+//				echo 'glob';
 				return array(
 					'type' => 'global',
 					'varName' => $match[0]
 				);
 			}
 			else{
-				echo 'loc';
+//				echo 'loc';
 				return array(
 					'type' => 'local',
 					'varName' => $match[0]
