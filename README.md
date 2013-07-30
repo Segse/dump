@@ -12,5 +12,5 @@ Output:
  - analysis of value data (String length/Array size)
  - Arrays and Object are displayed in tables, which enhance the readability
  
-![screenshot](https://github.com/Kimor/dump/raw/develop/array.png "demo.php")
+![screenshot](https://github.com/Kimor/dump/raw/develop/demo.png "demo.php")
 
