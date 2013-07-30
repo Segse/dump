@@ -1,24 +1,41 @@
 <?php
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * *
- * tested in Browser:								 *
- * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Firefox 22.0										 *
- * Google Chrome Version 28.0.1500.72 m				 *
- * Internet Explorer 10 Version: 10.0.9200.16635	 *
- * Safari 5.1.7(7534.57.2)							 *
- * Opera Version 12.16 Build 1860					 *
- * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * 						Tested in:						 *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * PHP Version 5.4.7									 *
+ * 														 *
+ * Browsers:											 *
+ * Firefox 22.0											 *
+ * Google Chrome Version 28.0.1500.72 m					 *
+ * Internet Explorer 10 Version: 10.0.9200.16635		 *
+ * Safari 5.1.7(7534.57.2)								 *
+ * Opera Version 12.16 Build 1860						 *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /**
  * handles var dump
  * 
- * @version 0.2 beta
+ * @version 0.3 beta
+ * @date 2013.07.29
  * 
+ * @todo 26 + !1! issues
+ * @todo PRIORITIZE TODOs !!!111einself
+ * 
+ * @todo check if colgroup and col is usefull
+ * @todo add function_exist
+ * @todo add manual
+ * @todo trace Called from APP_PATH\test.php, line 26
+ * @todo sql query detection and coloring
+ * @todo merge gobal local und arrVal $GLOBAL und global test cases und class prop array dump case und erkennung
+ * @todo floating box button inside dump expand collapse all foreach array object inside themself
+ * @todo refactor methods and validations
+ * @todo obj dump add function and () to public mehtod and prop
  * @todo varname test cases
  * @todo lambda test cases
  * @todo closure test cases
- * @todo improve global local var check and test cases
+ * @todo improve global local var check and test cases, $_  global
+ * @todo arr[asdf] erkennen und dumpen
  * @todo add private properties to object dump and test cases
  * @todo add private methods to object dump and test cases
  * @todo add method body to object dump and test cases
@@ -29,7 +46,8 @@
  * @todo dump process optimize
  * @todo xml dump and test cases
  * @todo static class test cases and props
- * @todo multiple wert zu weisung ermoeglchen auch bis zu local
+ * @todo multiple wert zuweisung ermoeglchen auch bis zu local
+ * @todo cookie/localstorage flag if array was collapsed and collapse it again after refresh
  *
  * @author Mirko Krotzek <mirko.krotzek@googlemail.com>
  * $package: debug $
@@ -47,32 +65,48 @@ class Dump
 	private $funcName = 'dump';
 
 	/**
-	 * if true html entities will be encoded
+	 * hold array with ip to block
+	 * empty list means, there are no invalid ips, expect for the ips, which are not listed in whiteList
+	 * 
+	 * @var Array $blackList array() empty by default
+	 */
+	private $blackList = array();
+
+	/**
+	 * hold array with ip of explicit access
+	 * empty list means, all ips are valid, expect for in blacklist listed 
+	 * 
+	 * @var Array $whiteList array('127.0.0.1') localhost by default
+	 */
+	private $whiteList = array('127.0.0.1');
+
+	/**
+	 * hold if html entities shall be encoded
 	 *
 	 * @var boolean $encodeHtmlEntities
 	 */
 	private $encodeHtmlEntities = TRUE;
 
 	/**
-	 * true, if minimum one string was found in value to dump
+	 * hold if minimum one string was found in value to dump
 	 *
 	 * @var boolean $strWasEncoded;
 	 */
 	private $strWasEncoded = FALSE;
 
 	/**
-	 * true, if input is only a value and no variable
+	 * hold if input is only a value and no variable
 	 *
 	 * @var boolean $onlyValNoVar;
 	 */
 	private $onlyValNoVar = FALSE;
 
 	/**
-	 * default indention interval step
+	 * hold if variable name was found
 	 * 
-	 * @var integer $indent
+	 * @var boolean $varNameFound
 	 */
-	//	private $indent = 4;
+	private $varNameFound = FALSE;
 
 	/**
 	 * hold html format for output
@@ -85,7 +119,8 @@ class Dump
 				'classConst' => 'Class CONSTANT',
 				'staticProp' => 'static property',
 				'prop' => 'property',
-				'local' => '(global/local) variable',
+				'global' => 'GOBAL variable',
+				'local' => 'local variable',
 				'globalConst' => 'global CONSTANT',
 			),
 		),
@@ -156,12 +191,29 @@ class Dump
 	 */
 	public function setFuncName($funcName)
 	{
-		if(($this->funcName = $funcName) === $this->funcName){
-			return TRUE;
-		}
-		else{
-			return FALSE;
-		}
+		$this->funcName = $funcName;
+	}
+
+	/**
+	 * set black list of ip-addresses, where dump shall not be able
+	 * 
+	 * @param Array $ip
+	 * @return boolean TRUE on success | FALSE on failure
+	 */
+	public function setBlackList($ip)
+	{
+		$this->blackList = $ip;
+	}
+
+	/**
+	 * set white list of ip-addresses, where dump shall be able
+	 * 
+	 * @param Array $ip
+	 * @return boolean TRUE on success | FALSE on failure
+	 */
+	public function setWhiteList($ip)
+	{
+		$this->whiteList = $ip;
 	}
 
 	/**
@@ -172,29 +224,31 @@ class Dump
 	 */
 	public function setEncodeHtmlEntities($encodeHtmlEntities)
 	{
-		if(($this->encodeHtmlEntities = $encodeHtmlEntities) === $this->encodeHtmlEntities){
-			return TRUE;
-		}
-		else{
-			return FALSE;
-		}
+		$this->encodeHtmlEntities = $encodeHtmlEntities;
 	}
 
 	/**
 	 * dump variable controller	
 	 *
+	 * @todo refactor
+	 * 
 	 * @param mixed $var
 	 * @return boolean TRUE on success | FALSE on failure
 	 */
 	public function varDump($var)
 	{
-		$this->onlyValNoVar = FALSE;
-		$this->strWasEncoded = FALSE;
+		if($this->getAccess()){
+			$this->onlyValNoVar = FALSE;
+			$this->strWasEncoded = FALSE;
 
-		if(($varName = $this->getVarName()) !== FALSE){
-			if(!isset($varName['varName'])){
-				$this->onlyValNoVar = TRUE;
+			if(($varName = $this->getVarName($var)) === FALSE){
+				$this->varNameFound = FALSE;
+				$varName = '';
 			}
+			else{
+				$this->varNameFound = TRUE;
+			}
+
 			if(($val = $this->analyseVal($var)) !== FALSE){
 				if($val['type'] === 'str'){
 					if($this->encodeHtmlEntities){
@@ -214,11 +268,56 @@ class Dump
 			}
 		}
 		else{
-			echo 'cant find varname';
 			return FALSE;
 		}
 	}
 
+	/**
+	 * check if dump will be output on a valid ip
+	 * 
+	 * @param NULL
+	 * @return boolean TRUE on success | FALSE on failure
+	 */
+	private function getAccess()
+	{
+		$remoteIp = $this->getIp();
+		if(in_array($remoteIp, $this->blackList)){
+			return FALSE;
+		}
+		else{
+			if(empty($this->whiteList)){
+				return TRUE;
+			}
+			else{
+				if(in_array($remoteIp, $this->whiteList)){
+					return TRUE;
+				}
+				else{
+					return FALSE;
+				}
+			}
+		}
+	}
+
+	/**
+	 * get server ip
+	 * 
+	 * @param NULL
+	 * @return String
+	 */
+	private function getIp()
+	{
+		if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) AND !empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+			return $_SERVER['HTTP_X_FORWARDED_FOR'];
+		}
+		else{
+			return $_SERVER['REMOTE_ADDR'];
+		}
+	}
+
+	/**
+	 * @todo refactor
+	 */
 	private function getInnerArrDump($var)
 	{
 		if(($val = $this->analyseVal($var)) !== FALSE){
@@ -243,13 +342,13 @@ class Dump
 	/**
 	 * return array hold variable name and type
 	 * 
-	 * @param NULL
+	 * @param mixed $val
 	 * @return mixed Array on success | FALSE on failure
 	 */
-	private function getVarName()
+	private function getVarName($val)
 	{
 		if(($trace = $this->getCallerTrace()) !== FALSE){
-			if(($varName = $this->analyseVarName($trace)) !== FALSE){
+			if(($varName = $this->analyseVarName($trace, $val)) !== FALSE){
 				return $varName;
 			}
 			else{
@@ -269,17 +368,13 @@ class Dump
 	 */
 	private function getCallerTrace()
 	{
-		$callerTraceFound = FALSE;
-		foreach($trace = debug_backtrace() as $key => $value){
-			if(preg_match('/' . $this->funcName . '\(/', $value['args'][0])){
-				$callerTraceFound = TRUE;
-				$callerTrace = $value;
-				break;
+		if(($trace = $this->getTraceByFuncName()) !== FALSE){
+			if(preg_match('/eval\(\)/', $trace['file'])){
+				return $this->getTraceForEval();
 			}
-		}
-
-		if($callerTraceFound){
-			return $callerTrace;
+			else{
+				return $trace;
+			}
 		}
 		else{
 			return FALSE;
@@ -287,95 +382,134 @@ class Dump
 	}
 
 	/**
+	 * get caller trace by funcName
+	 * 
+	 * @param NULL
+	 * @return mixed Array on success | FALSE on failure
+	 */
+	private function getTraceByFuncName()
+	{
+		foreach($trace = debug_backtrace() as $key => $value){
+			if($value['function'] === $this->funcName){
+				return $value;
+			}
+		}
+		return FALSE;
+	}
+
+	/**
+	 * get caller trace if call by eval()
+	 * 
+	 * @param NULL
+	 * @return mixed Array on success | FALSE on failure
+	 */
+	private function getTraceForEval()
+	{
+		foreach($trace = debug_backtrace() as $key => $value){
+			if(is_string($value['args'][0])){
+				if(preg_match('/' . $this->funcName . '\(/', $value['args'][0])){
+					return $value;
+				}
+			}
+		}
+		return FALSE;
+	}
+
+	/**
 	 * get variable name type
 	 * 
 	 * @param Array $trace
+	 * @param mixed $val
 	 * @return mixed Array on success | FALSE on failure
 	 */
-	private function analyseVarName($trace)
+	private function analyseVarName($trace, $val)
 	{
 
-		$delim = '/';
 		$varNameSymbol = '[a-zA-Z0-9_]';
 
 		$varType = array(
-			'classConst' => array(
-				'regExp' => $delim . '(?<=' . $this->funcName . '\()(?:' . '\$?' . $varNameSymbol . '+::' . $varNameSymbol . '+' . ')' . $delim,
-				'type' => 'classConst',
-			),
-			'staticProp' => array(
-				'regExp' => $delim . '(?<=' . $this->funcName . '\()(?:' . '\$?' . $varNameSymbol . '+::\$' . $varNameSymbol . '+' . ')' . $delim,
-				'type' => 'staticProp',
-			),
-			'prop' => array(
-				'regExp' => $delim . '(?<=' . $this->funcName . '\()(?:' . '\$' . $varNameSymbol . '+->\$?' . $varNameSymbol . '+' . ')' . $delim,
-				'type' => 'prop',
-			),
-			'local' => array(
-				'regExp' => $delim . '(?<=' . $this->funcName . '\()(?:' . '\$' . $varNameSymbol . '+' . ')' . $delim,
-				'type' => 'local',
-			),
-			'globalConst' => array(
-				'regExp' => $delim . '(?<=' . $this->funcName . '\()(?:' . '(?<=\()' . $varNameSymbol . '+' . ')' . $delim,
-				'type' => 'globalConst',
-			),
-			'val' => array(
-				'regExp' => $delim . '(?<=' . $this->funcName . '\()(?:' . '.*' . ')' . $delim,
-				'type' => 'val',
-			),
+			'classConst' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::' . $varNameSymbol . '+/',
+			'staticProp' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::\$' . $varNameSymbol . '+/',
+			'prop' => '/(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+->\$?' . $varNameSymbol . '+/',
+			'arrVal' => '§(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+(\[\'.*\'\]|\[".*"\]|\[[0-9]+\])*§',
+			'localGlobal' => '/(?<=' . $this->funcName . '\()\$(' . $varNameSymbol . '+)/',
+			'globalConst' => '/(?<=' . $this->funcName . '\()(?<=\()' . $varNameSymbol . '+/',
+			'val' => '/(?<=' . $this->funcName . '\().*/',
 		);
 
 		$subject = file($trace['file'])[$trace['line'] - 1];
-		if(preg_match($varType['classConst']['regExp'], $subject, $match)){
+		if(preg_match($varType['classConst'], $subject, $match)){
 			return array(
-				'type' => $varType['classConst']['type'],
+				'type' => 'classConst',
 				'varName' => $match[0]
 			);
 		}
-		elseif(preg_match($varType['staticProp']['regExp'], $subject, $match)){
+		elseif(preg_match($varType['staticProp'], $subject, $match)){
 			return array(
-				'type' => $varType['staticProp']['type'],
+				'type' => 'staticProp',
 				'varName' => $match[0]
 			);
 		}
-		elseif(preg_match($varType['prop']['regExp'], $subject, $match)){
+		elseif(preg_match($varType['prop'], $subject, $match)){
 			return array(
-				'type' => $varType['prop']['type'],
+				'type' => 'prop',
 				'varName' => $match[0]
 			);
 		}
-		elseif(preg_match($varType['globalConst']['regExp'], $subject, $match)){
+		elseif(preg_match($varType['globalConst'], $subject, $match)){
 			if(array_key_exists($match[0], (array)get_defined_constants(TRUE)['user'])){
 				return array(
-					'type' => $varType['globalConst']['type'],
+					'type' => 'globalConst',
 					'varName' => $match[0]
 				);
 			}
 			else{
-				/*
-				 * float is only represented by numbers
-				 */
+				/* float is only represented by numbers */
+				$this->onlyValNoVar = TRUE;
 				return array(
-					'type' => $varType['val']['type'],
+					'type' => 'val',
 				);
 			}
 		}
-		else if(preg_match($varType['local']['regExp'], $subject, $match)){
-			return array(
-				'type' => $varType['local']['type'],
-				'varName' => $match[0]
-			);
+		else if(preg_match($varType['arrVal'], $subject, $match)){
+			if(eval('return ' . $match[0] . ';') === $val){
+				echo 'glob';
+				return array(
+					'type' => 'global',
+					'varName' => $match[0]
+				);
+			}
+			else{
+				echo 'loc';
+				return array(
+					'type' => 'local',
+					'varName' => $match[0]
+				);
+			}
 		}
-		else if(preg_match($varType['val']['regExp'], $subject, $match)){
-			/*
-			 * only for string value without variable
-			 */
+		else if(preg_match($varType['localGlobal'], $subject, $match)){
+			if(array_key_exists($match[1], $GLOBALS) AND $GLOBALS[$match[1]] === $val){
+				return array(
+					'type' => 'global',
+					'varName' => $match[0]
+				);
+			}
+			else{
+				return array(
+					'type' => 'local',
+					'varName' => $match[0]
+				);
+			}
+		}
+		else if(preg_match($varType['val'], $subject, $match)){
+			/* only for string value without variable */
+			$this->onlyValNoVar = TRUE;
 			return array(
-				'type' => $varType['val']['type'],
+				'type' => 'val',
 			);
 		}
 		else{
-			return FALSE;
+			return FALSE; /* no variable name found */
 		}
 	}
 
@@ -431,6 +565,7 @@ class Dump
 			);
 		}
 		else{
+			/* unknown type */
 			return FALSE;
 		}
 	}
@@ -460,6 +595,8 @@ class Dump
 	/**
 	 * build html dump string
 	 * 
+	 * @todo refactor
+	 * 
 	 * @param Array $varName
 	 * @param Array $val
 	 * @param mixed $varVal
@@ -468,8 +605,7 @@ class Dump
 	private function buildDump($varName, $val, $varVal)
 	{
 		$dump = $this->createTag('div');
-		$dump = $this->addAttr($dump, array(
-			'class' => 'dump'));
+		$dump = $this->addAttr($dump, array('class' => 'dump'));
 		$pre = $this->createTag('pre');
 
 		$divVarName = $this->createTag('div');
@@ -504,8 +640,7 @@ class Dump
 		}
 
 		$clearfix = $this->createTag('div');
-		$clearfix = $this->addAttr($clearfix, array(
-			'class' => 'clearfix'));
+		$clearfix = $this->addAttr($clearfix, array('class' => 'clearfix'));
 
 		$pre = $this->appendContent($pre, $divVarName . $divVal . ';' . $clearfix);
 		return $this->appendContent($dump, $pre);
@@ -513,6 +648,8 @@ class Dump
 
 	/**
 	 * build value dump for primitive data types
+	 * 
+	 * @todo refactor
 	 * 
 	 * @param Array $val
 	 * @param mixed $varVal
@@ -524,8 +661,7 @@ class Dump
 		$valType = $this->appendContent($valType, $this->html['val'][$val['type']]['type']);
 
 		$valStr = $this->createTag('span');
-		$valStr = $this->addAttr($valStr, array(
-			'class' => $val['type']));
+		$valStr = $this->addAttr($valStr, array('class' => $val['type']));
 		if(isset($this->html['val'][$val['type']]['val'])){
 			$valStr = $this->appendContent($valStr, $this->html['val'][$val['type']]['val'][$val['val']]);
 		}
@@ -547,6 +683,8 @@ class Dump
 	/**
 	 * build value dump for array
 	 * 
+	 * @todo refactor
+	 * 
 	 * @param Array $val
 	 * @param mixed $varVal
 	 * @return String
@@ -555,19 +693,17 @@ class Dump
 	{
 		$table = $this->createTag('table');
 		$table = $this->addAttr($table, array(
-			//			'border' => '1',
+//			'border' => '1',
 			'cellspacing' => '2',
 			'cellpadding' => '3',
 			'class' => ($val['type'] === 'arr' ? 'arr' : 'obj')
 		));
 		$thead = $this->createTag('thead');
-		$thead = $this->addAttr($thead, array(
-			'class' => ($val['type'] === 'arr' ? 'arrHead' : 'objHead')));
+		$thead = $this->addAttr($thead, array('class' => ($val['type'] === 'arr' ? 'arrHead' : 'objHead')));
 		$tr = $this->createTag('tr');
 		$th = $this->createTag('th');
 		$colspan = 2;
-		$th = $this->addAttr($th, array(
-			'colspan' => $colspan));
+		$th = $this->addAttr($th, array('colspan' => $colspan));
 
 		if($val['type'] === 'arr'){
 			$arrType = $this->createTag('small');
@@ -585,8 +721,7 @@ class Dump
 			$arrType = $this->createTag('b');
 			$arrType = $this->appendContent($arrType, $this->html['val'][$val['type']]['type']);
 			$span = $this->createTag('span');
-			$span = $this->addAttr($span, array(
-				'class' => 'objName'));
+			$span = $this->addAttr($span, array('class' => 'objName'));
 
 			$span = $this->appendContent($span, '(' . get_class($varVal));
 			if(($parent = class_parents($varVal))){
@@ -601,6 +736,7 @@ class Dump
 			$span = $this->appendContent($span, ')');
 			$th = $this->appendContent($th, $arrType . $span);
 		}
+//		$th = $this->appendContent($th, '<span class="btnAll"><button class="toggleAll">Click to toggle all!</button></span>');
 		$tr = $this->appendContent($tr, $th);
 		$thead = $this->appendContent($thead, $tr);
 
@@ -614,11 +750,9 @@ class Dump
 						'arrVal',
 						'empty'
 				)));
-				$td = $this->addAttr($td, array(
-					'colspan' => $colspan));
+				$td = $this->addAttr($td, array('colspan' => $colspan));
 				$i = $this->createTag('i');
-				$i = $this->addAttr($i, array(
-					'class' => 'empty'));
+				$i = $this->addAttr($i, array('class' => 'empty'));
 				$i = $this->appendContent($i, $this->html['val'][$val['type']]['val'][$val['key']]);
 				$td = $this->appendContent($td, '{' . $i . '}');
 				$tr = $this->appendContent($tr, $td);
@@ -628,13 +762,25 @@ class Dump
 				foreach($varVal as $key => $value){
 					$tr = $this->createTag('tr');
 					$tdKey = $this->createTag('td');
-					$tdKey = $this->addAttr($tdKey, array(
-						'class' => 'key'));
-					$tdKey = $this->appendContent($tdKey, $key);
+					$tdKey = $this->addAttr($tdKey, array('class' => 'key'));
+					if(1){
+						if(0){
+							$tdKey = $this->appendContent($tdKey, '{' . $key . '}');
+						}
+						else{
+							$span = $this->createTag('span');
+							$span = $this->addAttr($span, array('class' => (is_integer($key) ? 'int' : 'str')));
+							$span = $this->appendContent($span, $key);
+							$tdKey = $this->appendContent($tdKey, '{' . $span . '}');
+						}
+					}
+					else{
+						$keyDump = $this->getInnerArrDump($key);
+						$tdKey = $this->appendContent($tdKey, $keyDump);
+					}
 
 					$tdVal = $this->createTag('td');
-					$tdVal = $this->addAttr($tdVal, array(
-						'class' => 'arrVal'));
+					$tdVal = $this->addAttr($tdVal, array('class' => 'arrVal'));
 					$valDump = $this->getInnerArrDump($value);
 					$tdVal = $this->appendContent($tdVal, $valDump);
 
@@ -647,15 +793,13 @@ class Dump
 			foreach(get_object_vars($varVal) as $key => $value){
 				$tr = $this->createTag('tr');
 				$tdKey = $this->createTag('td');
-				$tdKey = $this->addAttr($tdKey, array(
-					'class' => 'prop'));
+				$tdKey = $this->addAttr($tdKey, array('class' => 'prop'));
 				$i = $this->createTag('i');
 				$i = $this->appendContent($i, 'public');
 				$tdKey = $this->appendContent($tdKey, $i . ' ' . $key);
 
 				$tdVal = $this->createTag('td');
-				$tdVal = $this->addAttr($tdVal, array(
-					'class' => 'propVal'));
+				$tdVal = $this->addAttr($tdVal, array('class' => 'propVal'));
 				$valDump = $this->getInnerArrDump($value);
 				$tdVal = $this->appendContent($tdVal, $valDump);
 
@@ -666,22 +810,22 @@ class Dump
 			foreach(get_class_methods($varVal) as $key => $value){
 				$tr = $this->createTag('tr');
 				$tdKey = $this->createTag('td');
-				$tdKey = $this->addAttr($tdKey, array(
-					'class' => 'prop'));
+				$tdKey = $this->addAttr($tdKey, array('class' => 'prop'));
 				$i = $this->createTag('i');
 				$i = $this->appendContent($i, 'public');
-				$tdKey = $this->appendContent($tdKey, $i . ' ' . $value);
+				$b = $this->createTag('b');
+				$b = $this->appendContent($b, $value);
+				$tdKey = $this->appendContent($tdKey, $i . ' function ' . $b . '()');
 
 				$tdVal = $this->createTag('td');
-				$tdVal = $this->addAttr($tdVal, array(
-					'class' => 'propVal'));
+				$tdVal = $this->addAttr($tdVal, array('class' => 'propVal'));
 				$tdVal = $this->appendContent($tdVal, '{<b>method</b>}');
 				$tr = $this->appendContent($tr, $tdKey . $tdVal);
 				$tbody = $this->appendContent($tbody, $tr);
 			}
-			//			foreach(get_class_vars(get_class($varVal)) as $key => $value){
-			////				echo $html = $key . ' => ' . $value . '<br>';
-			//			}
+//			foreach(get_class_vars(get_class($varVal)) as $key => $value){
+////				echo $html = $key . ' => ' . $value . '<br>';
+//			}
 		}
 		elseif($val['type'] === 'res'){
 			$b = $this->createTag('b');
@@ -690,17 +834,17 @@ class Dump
 		}
 
 		$table = $this->appendContent($table, $thead . $tbody);
-		$table = $this->addAttr($table, array(
-			'class' => 'floatLeft'));
+		$table = $this->addAttr($table, array('class' => 'floatLeft'));
 		$span = $this->createTag('span');
-		$span = $this->addAttr($span, array(
-			'class' => 'floatLeft'));
+		$span = $this->addAttr($span, array('class' => 'floatLeft'));
 		$span = $this->appendContent($span, '{');
 		return $span . $table . '}';
 	}
 
 	/**
 	 * create html tag
+	 * 
+	 * @todo refactor
 	 * 
 	 * @param String $tag
 	 * @return String
@@ -712,6 +856,8 @@ class Dump
 
 	/**
 	 * add attribute to html tag
+	 * 
+	 * @todo refactor
 	 * 
 	 * @param String $tag
 	 * @param Array $attr
@@ -751,6 +897,8 @@ class Dump
 	/**
 	 * add content to html tag behind existing content
 	 * 
+	 * @todo refactor
+	 * 
 	 * @param String $tag
 	 * @param String $content
 	 * @return String
@@ -762,6 +910,9 @@ class Dump
 
 	/**
 	 * add content to html tag in front of existing content
+	 * 
+	 * @todo refactor
+	 * 
 	 * @param String $tag
 	 * @param String $content
 	 * @return String
@@ -775,6 +926,8 @@ class Dump
 	/**
 	 * build html output string
 	 * 
+	 * @todo refactor
+	 * 
 	 * @param String $dump
 	 * @return String
 	 */
@@ -782,8 +935,7 @@ class Dump
 	{
 		$section = $this->createTag('section');
 		$info = $this->createTag('div');
-		$info = $this->addAttr($info, array(
-			'class' => 'info'));
+		$info = $this->addAttr($info, array('class' => 'info'));
 		$pre = $this->createTag('pre');
 
 		if($this->strWasEncoded){
@@ -798,11 +950,23 @@ class Dump
 			$pre = $this->appendContent($pre, $noVar);
 			$pre = $this->appendContent($pre, '<br>');
 		}
+		elseif(!$this->varNameFound){
+			$noVar = $this->createTag('span');
+			$noVar = $this->appendContent($noVar, 'Variable name could not be found!');
+			$pre = $this->appendContent($pre, $noVar);
+			$pre = $this->appendContent($pre, '<br>');
+		}
 
 		$info = $this->appendContent($info, $pre);
 		return $this->appendContent($section, $this->setCSS() . $info . $dump . $this->setJS());
 	}
 
+	/**
+	 * set styles
+	 * 
+	 * @param NULL
+	 * @return String
+	 */
 	private function setCSS()
 	{
 		return <<<CSS
@@ -874,15 +1038,24 @@ class Dump
 	.info span{
 		background-color: #e9b96e;
 	}
+	.btnAll{
+		float: right;
+	}
 </style>
 CSS;
 	}
 
+	/**
+	 * set JavaScript
+	 * 
+	 * @param NULL
+	 * @return String
+	 */
 	private function setJS()
 	{
 		return <<<JS
 <script type="text/javascript" src="newjavascript.js">
-
+		
 </script>
 <script type="text/javascript">
 	window.onDomReady = initReady;
@@ -1002,6 +1175,7 @@ function dump($var, $encodeHtmlEntities = TRUE)
 {
 	$Dump = new Dump();
 	$Dump->setFuncName('dump');
+	$Dump->setWhiteList(array('127.0.0.1', '92.198.9.250', '92.198.9.254', '83.236.130.130', '195.71.148.194', '212.202.156.218'));
 	$Dump->setEncodeHtmlEntities($encodeHtmlEntities);
 	$re = $Dump->varDump($var);
 	unset($Dump);

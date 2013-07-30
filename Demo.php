@@ -1,5 +1,44 @@
 <?php
 
+//$GLOBALS['aa'] = 1;
+//dump($aa);
+////var_dump($_SERVER);
+//define('asdf', 2);
+//$var = 3;
+//
+////var_dump((array)get_defined_constants());
+////var_dump((array)get_defined_constants(TRUE));
+////foreach((array)get_defined_vars()['GLOBALS']as $key => $value){
+////	var_dump($value);
+////}
+//
+//
+//class test{
+//
+//	public function mu(){
+//		global $var;
+//		$test = 4;
+//		$var = 5;
+//		return $GLOBALS['aa'] + asdf + $GLOBALS['var'] + $test + $var;
+//	}
+//
+//}
+//
+//$o = new test();
+//var_dump($o->mu());
+//var_dump((array)get_defined_vars());
+//
+//
+//
+//
+//foreach((array)get_defined_vars()['GLOBALS']as $key => $value){
+//	var_dump($key . '=>' . $value);
+//	if($key === 'var' AND $value === 5){
+//		var_dump($value);
+//	}
+//}
+//
+//exit;
 /*
  * test cases for dump.php
  * 
@@ -16,25 +55,33 @@
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 10);
 //ini_set('error_reporting', E_ALL);
-ini_set('error_reporting', E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT);
+ini_set('error_reporting', E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_WARNING & ~E_STRICT);
 
 /*
  * Dump class
  */
 require_once 'Dump.php';
 
+$GLOBAsLS['asdfa']["asd"][12] = 1;
+dump($GLOBAsLS['asdfa']["asd"][12]);
+var_dump($GLOBALS);
+//var_dump($GLOBALS['asdfa']);
+//var_dump($GLOBALS['asdfa']["asd"]);
+//var_dump($GLOBALS['asdfa']["asd"][12]);
+//var_dump(eval('echo $GLOBALS[\'asdfa\']["asd"][12];'));
+exit;
 /*
  * test cases
  */
-demoNull();
-demoBool();
-demoInt();
-demoFloat();
-demoStr();
-demoArr();
-demoObj();
-demoRes();
-demoConst();
+//demoNull();
+//demoBool();
+//demoInt();
+//demoFloat();
+//demoStr();
+//demoArr();
+//demoObj();
+//demoRes();
+//demoConst();
 //demoVarName();
 //demoLambdaFunc();
 //demoClosure();
@@ -265,8 +312,8 @@ function demoArr()
 	demoDump('dump($arr = array(1,\'asdf\'=>2,3));');
 	seperator('dashed');
 
-	demoVarDump('class arrTest{		public $pubProp = 1;		public $pubPropArr = array(1, 2, 3);		private $privateProp = 2;		public function __construct(){			$this->pubProp = 3;		}		public function setPubProp($var){			$this->pubProp = $var;		}		private function getPubProp(){			return $this->pubProp;		}	}	$arr = array(		"null" => NULL,		"bool" => TRUE,		"bool" => FALSE,		"int" => 1,		1,		"float" => 2.3,		"str" => "asdf",		0 => array(),		array(			1,			2,			array(				1,				array(					1,					2,					3,					array(						1,						array(							1,							2,							3,						),						2,						3,					),				),				new arrTest(),				2,				3,			),			3,			array(				1,				2,				3,				array(					1,					2,					3,				),			),		),		new arrTest(),		[1, 2, 3, [1, 2, 3],],	);	var_dump($arr);');
-	demoDump('class arrTest2{		public $pubProp = 1;		public $pubPropArr = array(1, 2, 3);		private $privateProp = 2;		public function __construct(){			$this->pubProp = 3;		}		public function setPubProp($var){			$this->pubProp = $var;		}		private function getPubProp(){			return $this->pubProp;		}	}	$arr = array(		"null" => NULL,		"bool" => TRUE,		"bool" => FALSE,		"int" => 1,		1,		"float" => 2.3,		"str" => "asdf",		0 => array(),		array(			1,			2,			array(				1,				array(					1,					2,					3,					array(						1,						array(							1,							2,							3,						),						2,						3,					),				),				new arrTest2(),				2,				3,			),			3,			array(				1,				2,				3,				array(					1,					2,					3,				),			),		),		new arrTest2(),		[1, 2, 3, [1, 2, 3],],	);	dump($arr);');
+	demoVarDump('class arrTest{		public $pubProp = 1;		public $pubPropArr = array(1, 2, 3);		private $privateProp = 2;		public function __construct(){			$this->pubProp = 3;		}		public function setPubProp($var){			$this->pubProp = $var;		}		private function getPubProp(){			return $this->pubProp;		}	}	$arr = array(		"null" => NULL,		"bool" => TRUE,		"bool" => FALSE,		"int" => 1,		1,		"float" => 2.3,		"str" => "asdf",		0 => array(),		"" => "key is empty string!",		array(			1,			2,			array(				1,				array(					1,					2,					3,					array(						1,						array(							1,							2,							3,						),						2,						3,					),				),				new arrTest(),				2,				3,			),			3,			array(				1,				2,				3,				array(					1,					2,					3,				),			),		),		new arrTest(),		[1, 2, 3, [1, 2, 3],],	);	var_dump($arr);');
+	demoDump('class arrTest2{		public $pubProp = 1;		public $pubPropArr = array(1, 2, 3);		private $privateProp = 2;		public function __construct(){			$this->pubProp = 3;		}		public function setPubProp($var){			$this->pubProp = $var;		}		private function getPubProp(){			return $this->pubProp;		}	}	$arr = array(		"null" => NULL,		"bool" => TRUE,		"bool" => FALSE,		"int" => 1,		1,		"float" => 2.3,		"str" => "asdf",		0 => array(),		"" => "key is empty string!",		array(			1,			2,			array(				1,				array(					1,					2,					3,					array(						1,						array(							1,							2,							3,						),						2,						3,					),				),				new arrTest2(),				2,				3,			),			3,			array(				1,				2,				3,				array(					1,					2,					3,				),			),		),		new arrTest2(),		[1, 2, 3, [1, 2, 3],],	);	dump($arr);');
 }
 
 /**
@@ -344,7 +391,7 @@ function demoConst()
 	seperator('dashed');
 
 	demoVarDump('class constA9{		const CONSTANT = 1;	}	class constB9 extends constA9{		const CONSTANT = \'constant value\';		}	$class = new constB9();	$classname = "constB9"; var_dump($classname::CONSTANT);');
-	demoDump('class constA10{		const CONSTANT = 1;	}	class constB10 extends constA10{		const CONSTANT = \'constant value\';		}	$class = new constB10();	$classname = "constB10"; dump($classname::CONSTANT);');
+	demoDump('class constA10{		const CONSTANT = 1;	}	class constB10 extends constA10{		const CONSTANT = "constant value";	}	$class = new constB10();	$classname = "constB10";	dump($classname::CONSTANT);');
 	seperator('dashed');
 }
 
@@ -365,6 +412,8 @@ function demoVarName()
 	echo buildDemoDump('DOES NOT EXIST!');
 	seperator('dotted');
 
+	demoDump('dump($_SERVER);');
+
 	demoDump('dump($obj->$var);');
 	demoDump('class testVarName{public $asdf = 123;private $asdf2 = 123;}$obj = new testVarName();$var = \'asdf\';dump($obj->$var);');
 	/*
@@ -372,6 +421,31 @@ function demoVarName()
 	 */
 	demoDump('function test2($var, $var2 = 1){return $var+1;}$var = \'test2\';dump($var("2"));');
 	demoDump('dump($obj->$var);');
+
+
+	/*
+	 * global local cases
+	 */
+	$asdfa = 1;
+	dump($asdfa);
+	$asdf = 1;
+
+	function test123()
+	{
+		global $asdf;
+		$asdf = 2;
+		dump($asdf);
+	}
+
+	test123();
+
+	function test1234()
+	{
+		$asdf = 3;
+		dump($asdf);
+	}
+
+	test1234();
 }
 
 /**
@@ -527,7 +601,7 @@ $xml = '<?xml version="1.0" encoding="UTF-8"?>
 		<tariff>2</tariff>
 		<option>3</option>
 	</mediamarkt>';
-$parser = xml_parser_create();
+//$parser = xml_parser_create();
 //var_dump($parser);
 //var_dump(xml_parse($parser, $xml));
 //dump($parser);
