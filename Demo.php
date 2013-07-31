@@ -1,55 +1,19 @@
 <?php
 
-//$GLOBALS['aa'] = 1;
-//dump($aa);
-////var_dump($_SERVER);
-//define('asdf', 2);
-//$var = 3;
-//
-////var_dump((array)get_defined_constants());
-////var_dump((array)get_defined_constants(TRUE));
-////foreach((array)get_defined_vars()['GLOBALS']as $key => $value){
-////	var_dump($value);
-////}
-//
-//
-//class test{
-//
-//	public function mu(){
-//		global $var;
-//		$test = 4;
-//		$var = 5;
-//		return $GLOBALS['aa'] + asdf + $GLOBALS['var'] + $test + $var;
-//	}
-//
-//}
-//
-//$o = new test();
-//var_dump($o->mu());
-//var_dump((array)get_defined_vars());
-//
-//
-//
-//
-//foreach((array)get_defined_vars()['GLOBALS']as $key => $value){
-//	var_dump($key . '=>' . $value);
-//	if($key === 'var' AND $value === 5){
-//		var_dump($value);
-//	}
-//}
-//
-//exit;
 /*
  * test cases for dump.php
  * 
+ * @version 0.3 beta
+ * @date 2013.07.30
+ * 
  * @author Mirko Krotzek <mirko.krotzek@googlemail.com>
- * $package: debug $
- * $subpackage: dump $
- * $method: $
+ * @package debug
+ * @subpackage dump
+ * @method
  */
 
 /*
- * define ini set
+ * apache config, define ini_set
  */
 //ini_set('display_errors', 0);
 ini_set('display_errors', 1);
@@ -62,29 +26,21 @@ ini_set('error_reporting', E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_WARNING & ~E_S
  */
 require_once 'Dump.php';
 
-//$GLOBAsLS['asdfa']["asd"][12] = 1;
-//dump($GLOBAsLS['asdfa']["asd"][12]);
-//var_dump($GLOBALS);
-//var_dump($GLOBALS['asdfa']);
-//var_dump($GLOBALS['asdfa']["asd"]);
-//var_dump($GLOBALS['asdfa']["asd"][12]);
-//var_dump(eval('echo $GLOBALS[\'asdfa\']["asd"][12];'));
-//exit;
 /*
  * test cases
  */
 demoNull();
-//demoBool();
-//demoInt();
-//demoFloat();
-//demoStr();
+demoBool();
+demoInt();
+demoFloat();
+demoStr();
 demoArr();
-//demoObj();
-//demoRes();
-//demoConst();
-//demoVarName();
-//demoLambdaFunc();
-//demoClosure();
+demoObj();
+demoRes();
+demoConst();
+demoVarName();
+demoLambdaFunc();
+demoClosure();
 
 /**
  * output seperator
@@ -304,12 +260,12 @@ function demoArr()
 	demoDump('dump($arr = array(1,2=>2,3));');
 	seperator('dashed');
 
-	demoVarDump('var_dump($arr = array(1,\'2\'=>2,3));');
-	demoDump('dump($arr = array(1,\'2\'=>2,3));');
+	demoVarDump('var_dump($arr = array(1,"2"=>2,3));');
+	demoDump('dump($arr = array(1,"2"=>2,3));');
 	seperator('dashed');
 
-	demoVarDump('var_dump($arr = array(1,\'asdf\'=>2,3));');
-	demoDump('dump($arr = array(1,\'asdf\'=>2,3));');
+	demoVarDump('var_dump($arr = array(1,"asdf"=>2,3));');
+	demoDump('dump($arr = array(1,"asdf"=>2,3));');
 	seperator('dashed');
 
 	demoVarDump('class arrTest{		public $pubProp = 1;		public $pubPropArr = array(1, 2, 3);		private $privateProp = 2;		public function __construct(){			$this->pubProp = 3;		}		public function setPubProp($var){			$this->pubProp = $var;		}		private function getPubProp(){			return $this->pubProp;		}	}	$arr = array(		"null" => NULL,		"bool" => TRUE,		"bool" => FALSE,		"int" => 1,		1,		"float" => 2.3,		"str" => "asdf",		0 => array(),		"" => "key is empty string!",		array(			1,			2,			array(				1,				array(					1,					2,					3,					array(						1,						array(							1,							2,							3,						),						2,						3,					),				),				new arrTest(),				2,				3,			),			3,			array(				1,				2,				3,				array(					1,					2,					3,				),			),		),		new arrTest(),		[1, 2, 3, [1, 2, 3],],	);	var_dump($arr);');
@@ -352,12 +308,12 @@ function demoRes()
 {
 	test('resource');
 
-	demoVarDump('$db_link = @mysql_connect(\'localhost\', \'root\', \'\');	if(!is_resource($db_link)){		echo(\'Can\\\'t connect : \' . mysql_error());	}	var_dump($db_link);');
-	demoDump('$db_link = @mysql_connect(\'localhost\', \'root\', \'\');	if(!is_resource($db_link)){		echo(\'Can\\\'t connect : \' . mysql_error());	}	dump($db_link);');
+	demoVarDump('$db_link = @mysql_connect("localhost", "root", "admin");	if(!is_resource($db_link)){		echo("Can\\"t connect : " . mysql_error());	}	var_dump($db_link);');
+	demoDump('$db_link = @mysql_connect("localhost", "root", "admin");	if(!is_resource($db_link)){		echo("Can\\"t connect : " . mysql_error());	}	dump($db_link);');
 	seperator('dashed');
 
-	demoVarDump('$filename = \'Dump.php\';	$handle = fopen($filename, \'r\');	var_dump($handle);');
-	demoDump('$filename = \'Dump.php\';	$handle = fopen($filename, \'r\');	dump($handle);');
+	demoVarDump('$filename = "Dump.php";	$handle = fopen($filename, "r");	var_dump($handle);');
+	demoDump('$filename = "Dump.php";	$handle = fopen($filename, "r");	dump($handle);');
 }
 
 /**
@@ -370,8 +326,8 @@ function demoConst()
 {
 	test('constant');
 
-	demoVarDump('define(\'CONST1\', 123);	var_dump(CONST1);');
-	demoDump('define(\'CONST2\', 12345);	dump(CONST2);');
+	demoVarDump('define("CONST1", 123);	var_dump(CONST1);');
+	demoDump('define("CONST2", 12345);	dump(CONST2);');
 	seperator('dashed');
 
 	demoVarDump('class constA{		const CONSTANT = 1;	}	class constB extends constA{		const CONSTANT = "constant value";			}	$class = new constB();	var_dump(constB::CONSTANT);');
@@ -382,15 +338,15 @@ function demoConst()
 	demoDump('class constA4{		const CONSTANT = 1;	}	class constB4 extends constA4{		const CONSTANT = "constant value";			}	$class = new constB4();	dump(constA4::CONSTANT);');
 	seperator('dashed');
 
-	demoVarDump('class constA5{		const CONSTANT = 1;	}	class constB5 extends constA5{		const CONSTANT = \'constant value\';		function showConstant(){			var_dump(self::CONSTANT);		}	}	$class = new constB5();	$class->showConstant();');
-	demoDump('class constA6{		const CONSTANT = 1;	}	class constB6 extends constA6{		const CONSTANT = \'constant value\';		function showConstant(){			dump(self::CONSTANT);		}	}	$class = new constB6();	$class->showConstant();');
+	demoVarDump('class constA5{		const CONSTANT = 1;	}	class constB5 extends constA5{		const CONSTANT = "constant value";		function showConstant(){			var_dump(self::CONSTANT);		}	}	$class = new constB5();	$class->showConstant();');
+	demoDump('class constA6{		const CONSTANT = 1;	}	class constB6 extends constA6{		const CONSTANT = "constant value";		function showConstant(){			dump(self::CONSTANT);		}	}	$class = new constB6();	$class->showConstant();');
 	seperator('dashed');
 
-	demoVarDump('class constA7{		const CONSTANT = 1;	}	class constB7 extends constA7{		const CONSTANT = \'constant value\';		function showConstant(){			var_dump(parent::CONSTANT);		}	}	$class = new constB7();	$class->showConstant();');
-	demoDump('class constA8{		const CONSTANT = 1;	}	class constB8 extends constA8{		const CONSTANT = \'constant value\';		function showConstant(){			dump(parent::CONSTANT);		}	}	$class = new constB8();	$class->showConstant();');
+	demoVarDump('class constA7{		const CONSTANT = 1;	}	class constB7 extends constA7{		const CONSTANT = "constant value";		function showConstant(){			var_dump(parent::CONSTANT);		}	}	$class = new constB7();	$class->showConstant();');
+	demoDump('class constA8{		const CONSTANT = 1;	}	class constB8 extends constA8{		const CONSTANT = "constant value";		function showConstant(){			dump(parent::CONSTANT);		}	}	$class = new constB8();	$class->showConstant();');
 	seperator('dashed');
 
-	demoVarDump('class constA9{		const CONSTANT = 1;	}	class constB9 extends constA9{		const CONSTANT = \'constant value\';		}	$class = new constB9();	$classname = "constB9"; var_dump($classname::CONSTANT);');
+	demoVarDump('class constA9{		const CONSTANT = 1;	}	class constB9 extends constA9{		const CONSTANT = "constant value";		}	$class = new constB9();	$classname = "constB9"; var_dump($classname::CONSTANT);');
 	demoDump('class constA10{		const CONSTANT = 1;	}	class constB10 extends constA10{		const CONSTANT = "constant value";	}	$class = new constB10();	$classname = "constB10";	dump($classname::CONSTANT);');
 	seperator('dashed');
 }
@@ -412,40 +368,68 @@ function demoVarName()
 	echo buildDemoDump('DOES NOT EXIST!');
 	seperator('dotted');
 
-	demoDump('dump($_SERVER);');
-
 	demoDump('dump($obj->$var);');
-	demoDump('class testVarName{public $asdf = 123;private $asdf2 = 123;}$obj = new testVarName();$var = \'asdf\';dump($obj->$var);');
+	demoDump('class testVarName{public $asdf = 123;private $asdf2 = 123;}$obj = new testVarName();$var = "asdf";dump($obj->$var);');
 	/*
 	 * better test case und ausgabe von function return
 	 */
-	demoDump('function test2($var, $var2 = 1){return $var+1;}$var = \'test2\';dump($var("2"));');
+	demoDump('function test2($var, $var2 = 1){return $var+1;}$var = "test2";dump($var("2"));');
 	demoDump('dump($obj->$var);');
 
 
 	/*
 	 * global local cases
 	 */
-	$asdfa = 1;
-	dump($asdfa);
-	$asdf = 1;
+	demoDump('function test12()	{		$asdf = 1;		dump($asdf);	}	test12();');
+	demoDump('function test123()	{		global $asdf;		$asdf = 2;		dump($asdf);	}	test123();');
+	demoDump('$GLOBALS["asdf"] = 3;	dump($GLOBALS["asdf"]);');
+	demoDump('$GLOBALS["asdf"] = 4;	global $asdf;	dump($asdf);');
+	demoDump('$GLOBALS["asdf"] = 5;	function test1234()	{		global $asdf;		dump($asdf);	}	test1234();');
+	demoDump('dump($GLOBALS[1]["asdf"][2] = 6);');
+	demoDump('dump($arr[1]["asdf"][2] = 7);');
+	demoDump('global $arr;	dump($arr[1]["asdf"][2] = 7);');
+	demoDump('final class arrTest23	{		public static function func()		{			return TRUE;		}	}	$arr = array(array(0, "arrTest23"), 1, 5, "func");	dump($arr[0][1]::$arr[$arr[2] = 3]());');
+	demoDump('final class arrTest24	{		public static $prop = 4;	}	$arr = array(array(0, "arrTest24"), 1, 5, "prop");	dump($arr[0][1]::${$arr[$arr[2] = 3]});');
 
-	function test123()
-	{
-		global $asdf;
-		$asdf = 2;
-		dump($asdf);
-	}
-
-	test123();
-
-	function test1234()
-	{
-		$asdf = 3;
-		dump($asdf);
-	}
-
-	test1234();
+	$var = 12;
+//	$arr[0][1]->$arr[$arr[2]];
+	exit;
+//
+//
+//class test{
+//
+//	public function mu(){
+//		global $var;
+//		$test = 4;
+//		$var = 5;
+//		return $GLOBALS['aa'] + asdf + $GLOBALS['var'] + $test + $var;
+//	}
+//
+//}
+//
+//$o = new test();
+//var_dump($o->mu());
+//var_dump((array)get_defined_vars());
+//
+//
+//
+//
+//foreach((array)get_defined_vars()['GLOBALS']as $key => $value){
+//	var_dump($key . '=>' . $value);
+//	if($key === 'var' AND $value === 5){
+//		var_dump($value);
+//	}
+//}
+//
+//exit;
+	//$GLOBAsLS['asdfa']["asd"][12] = 1;
+//dump($GLOBAsLS['asdfa']["asd"][12]);
+//var_dump($GLOBALS);
+//var_dump($GLOBALS['asdfa']);
+//var_dump($GLOBALS['asdfa']["asd"]);
+//var_dump($GLOBALS['asdfa']["asd"][12]);
+//var_dump(eval('echo $GLOBALS["asdfa"]["asd"][12];'));
+//exit;
 }
 
 /**
@@ -458,8 +442,8 @@ function demoLambdaFunc()
 {
 	test('lambda function');
 
-//	demoVarDump('$db_link = @mysql_connect(\'localhost\', \'root\', \'admin\');if(!is_resource($db_link)){echo(\'Can\\\'t connect : \' . mysql_error());}var_dump($db_link);');
-//	demoVarDump('$filename = \'Dump.php\';$handle = fopen($filename, \'r\');var_dump($handle);');
+//	demoVarDump('$db_link = @mysql_connect("localhost", "root", "admin");if(!is_resource($db_link)){echo("Can\\"t connect : " . mysql_error());}var_dump($db_link);');
+//	demoVarDump('$filename = "Dump.php";$handle = fopen($filename, "r");var_dump($handle);');
 //	var_dump(preg_replace_callback('~-([a-z])~', function ($match){
 //				return strtoupper($match[1]);
 //			}, 'hello-world'));
@@ -490,8 +474,8 @@ function demoLambdaFunc()
 
 	demoDump('$func = function($var){return $var * $var;};dump($func);$int = 5;$re = $func($int);dump($func($int));dump($re);');
 
-//	demoDump('$db_link = @mysql_connect(\'localhost\', \'root\', \'admin\');if(!is_resource($db_link)){echo(\'Can\\\'t connect : \' . mysql_error());}dump($db_link);');
-//	demoDump('$filename = \'Dump.php\';$handle = fopen($filename, \'r\');dump($handle);');
+//	demoDump('$db_link = @mysql_connect("localhost", "root", "admin");if(!is_resource($db_link)){echo("Can\\"t connect : " . mysql_error());}dump($db_link);');
+//	demoDump('$filename = "Dump.php";$handle = fopen($filename, "r");dump($handle);');
 }
 
 /**
@@ -504,21 +488,21 @@ function demoClosure()
 {
 	test('closure');
 
-//	demoVarDump('$db_link = @mysql_connect(\'localhost\', \'root\', \'admin\');if(!is_resource($db_link)){echo(\'Can\\\'t connect : \' . mysql_error());}var_dump($db_link);');
-//	demoVarDump('$filename = \'Dump.php\';$handle = fopen($filename, \'r\');var_dump($handle);');
+//	demoVarDump('$db_link = @mysql_connect("localhost", "root", "admin");if(!is_resource($db_link)){echo("Can\\"t connect : " . mysql_error());}var_dump($db_link);');
+//	demoVarDump('$filename = "Dump.php";$handle = fopen($filename, "r");var_dump($handle);');
 
 	demoVarDump('$func = function($var){return $var * $var;};var_dump($func);$int = 5;$re = $func($int);var_dump($func($int));var_dump($re);');
 
 	demoDump('$func = function($var){return $var * $var;};dump($func);$int = 5;$re = $func($int);dump($func($int));dump($re);');
 
-//	demoDump('$db_link = @mysql_connect(\'localhost\', \'root\', \'admin\');if(!is_resource($db_link)){echo(\'Can\\\'t connect : \' . mysql_error());}dump($db_link);');
-//	demoDump('$filename = \'Dump.php\';$handle = fopen($filename, \'r\');dump($handle);');
+//	demoDump('$db_link = @mysql_connect("localhost", "root", "admin");if(!is_resource($db_link)){echo("Can\\"t connect : " . mysql_error());}dump($db_link);');
+//	demoDump('$filename = "Dump.php";$handle = fopen($filename, "r");dump($handle);');
 }
 
 //	demoDump('
 //class MyClass
 //{
-//    const CONSTANT = \'constant value\';
+//    const CONSTANT = "constant value";
 //
 //    function showConstant() {
 //        dump(self::CONSTANT);
@@ -595,12 +579,14 @@ function demoClosure()
 //	varName($baz);
 //	
 //	
-$xml = '<?xml version="1.0" encoding="UTF-8"?>
-	<mediamarkt>
-		<hardware>1</hardware>
-		<tariff>2</tariff>
-		<option>3</option>
-	</mediamarkt>';
+$xml = '
+
+<? xml version = "1.0" encoding = "UTF-8" ?>
+<mediamarkt>
+	<hardware>1</hardware>
+	<tariff>2</tariff>
+	<option>3</option>
+</mediamarkt>';
 //$parser = xml_parser_create();
 //var_dump($parser);
 //var_dump(xml_parse($parser, $xml));

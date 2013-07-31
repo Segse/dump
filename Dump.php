@@ -118,7 +118,9 @@ class Dump
 			'type' => array(
 				'classConst' => 'Class CONSTANT',
 				'staticProp' => 'static property',
-				'prop' => 'property',
+				'staticMethod' => 'static method',
+				'prop' => 'Class property',
+				'method' => 'Class method',
 				'global' => 'GOBAL variable',
 				'local' => 'local variable',
 				'globalConst' => 'global CONSTANT',
@@ -425,19 +427,23 @@ class Dump
 	private function analyseVarName($trace, $val)
 	{
 
-		$varNameSymbol = '[a-zA-Z0-9_]';
+		$varNameSymbol = '[a-zA-Z0-9_]+';
+		$varNameArr = '(\[\'.*\'\]|\[".*"\]|\[.*\])*';
 
 		$varType = array(
-			'classConst' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::' . $varNameSymbol . '+/',
-			'staticProp' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::\$' . $varNameSymbol . '+/',
-			'prop' => '/(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+->\$?' . $varNameSymbol . '+/',
-			'arrVal' => '#(?<=' . $this->funcName . '\()\$' . $varNameSymbol . '+(\[\'.*\'\]|\[".*"\]|\[[0-9]+\])*#',
-			'localGlobal' => '/(?<=' . $this->funcName . '\()\$(' . $varNameSymbol . '+)/',
-			'globalConst' => '/(?<=' . $this->funcName . '\()(?<=\()' . $varNameSymbol . '+/',
+			'classConst' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '::?' . $varNameArr . '/',
+			'staticProp' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::\$(' . $varNameSymbol . '|{\$' . $varNameSymbol . $varNameArr . '})/',
+			'staticMethod' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '::(' . $varNameSymbol . '\(|{$' . $varNameSymbol . $varNameArr . '}\()/',
+			'prop' => '/(?<=' . $this->funcName . '\()\$' . $varNameSymbol . $varNameArr . '->\$?' . $varNameSymbol . $varNameArr . '/',
+//			'prop' => '/(?<=' . $this->funcName . '\()(\$|\${\$)' . $varNameSymbol . $varNameArr . '}?->\$?({' . $varNameSymbol . '/',
+			'localGlobal' => '/(?<=' . $this->funcName . '\()\$(' . $varNameSymbol . ')(' . $arr . ')/',
+			'globalConst' => '/(?<=' . $this->funcName . '\()(?<=\()' . $varNameSymbol . $varNameArr . '/',
 			'val' => '/(?<=' . $this->funcName . '\().*/',
 		);
 
-		$subject = file($trace['file'])[$trace['line'] - 1];
+		${$as[1][1]}->${$asdf[1][1]} = 123;
+		$subject = file($trace['file'])[$trace['line'] -
+				1];
 		if(preg_match($varType['classConst'], $subject, $match)){
 			return array(
 				'type' => 'classConst',
@@ -471,24 +477,8 @@ class Dump
 				);
 			}
 		}
-		else if(preg_match($varType['arrVal'], $subject, $match)){
-			if(eval('return ' . $match[0] . ';') === $val){
-//				echo 'glob';
-				return array(
-					'type' => 'global',
-					'varName' => $match[0]
-				);
-			}
-			else{
-//				echo 'loc';
-				return array(
-					'type' => 'local',
-					'varName' => $match[0]
-				);
-			}
-		}
 		else if(preg_match($varType['localGlobal'], $subject, $match)){
-			if(array_key_exists($match[1], $GLOBALS) AND $GLOBALS[$match[1]] === $val){
+			if(eval('return ' . $match[0] . ';') === $val OR eval('return $GLOBALS["' . $match[1] . '"]' . $match[2] . ';') === $val){
 				return array(
 					'type' => 'global',
 					'varName' => $match[0]
@@ -631,7 +621,8 @@ class Dump
 				'val',
 				'floatLeft'
 		)));
-		if($val['type'] === 'arr' || $val['type'] === 'obj' || $val['type'] === 'res'){
+		if($val['type'] === 'arr' || $val['type'] === 'obj' ||
+				$val['type'] === 'res'){
 			$table = $this->buildCompositeDataTypeDump($val, $varVal);
 			$divVal = $this->appendContent($divVal, $table);
 		}
