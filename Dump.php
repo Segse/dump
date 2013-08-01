@@ -454,20 +454,17 @@ class Dump
 		$delim = '/';
 		$funcName = '(?<=' . $this->funcName . '\()';
 		$globalConst = '[a-zA-Z0-9_]+'; /* {} are only for variables */
-		$localGlobal = '\$(' . $globalConst . ')(\[.*\])*'; /* no {} in [] except for string */
-		$class = '\$?' . $globalConst . '(\[.*\])*';
-		$classInBraces = '{?' . $class . '}?';
-		$prop = $localGlobal . '->' . $classInBraces;
+		$localGlobal = $globalConst . '(\[.*\])*';
 		$funcEnd = '\(.*\)(?=\);)';
 
 		$varType = array(
-			'staticMethod' => $delim . $funcName . $class . '::' . $classInBraces . $funcEnd . $delim,
-			'staticProp' => $delim . $funcName . $class . '::\$?{?' . $localGlobal . '}?' . $delim,
-			'classConst' => $delim . $funcName . $class . '::' . $globalConst . $delim,
-			'method' => $delim . $funcName . $prop . $funcEnd . $delim,
-			'prop' => $delim . $funcName . $prop . $delim,
-			'func' => $delim . $funcName . $class . $funcEnd . $delim,
-			'localGlobal' => $delim . $funcName . $localGlobal . $delim,
+			'staticMethod' => $delim . $funcName . '\$?' . $localGlobal . '::' . '{?' . '\$?' . $localGlobal . '}?' . $funcEnd . $delim,
+			'staticProp' => $delim . $funcName . '\$?' . $localGlobal . '::\$?{?' . '\$' . $localGlobal . '}?' . $delim,
+			'classConst' => $delim . $funcName . '\$?' . $localGlobal . '::' . $globalConst . $delim,
+			'method' => $delim . $funcName . '\$' . $localGlobal . '->' . '{?' . '\$?' . $localGlobal . '}?' . $funcEnd . $delim,
+			'prop' => $delim . $funcName . '\$' . $localGlobal . '->' . '{?' . '\$?' . $localGlobal . '}?' . $delim,
+			'func' => $delim . $funcName . '\$?' . $localGlobal . $funcEnd . $delim,
+			'localGlobal' => $delim . $funcName . '\$(' . $globalConst . ')(\[.*\])*' . $delim, /* no {} in [] except for string */
 			'globalConst' => $delim . $funcName . $globalConst . $delim,
 			'val' => $delim . $funcName . '.*' . $delim,
 		);
@@ -1234,7 +1231,6 @@ function dump($var, $encodeHtmlEntities = TRUE)
 {
 	$Dump = new Dump();
 	$Dump->setFuncName('dump');
-	$Dump->setWhiteList(array('127.0.0.1', '::1', '92.198.9.250', '92.198.9.254', '83.236.130.130', '195.71.148.194', '212.202.156.218'));
 	$Dump->setEncodeHtmlEntities($encodeHtmlEntities);
 	$re = $Dump->varDump($var);
 	unset($Dump);
