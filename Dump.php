@@ -19,8 +19,9 @@
  * @version 0.3 beta
  * @date 2013.07.30
  * 
- * @todo 26 issues
+ * @todo 27 issues
  * 
+ * @todo call of same type in side $obj->meth->meth() self::{self::$var}();
  * @todo new regExp delimiter or back to iso
  * @todo check if colgroup and col is usefull
  * @todo add manual
@@ -450,93 +451,25 @@ class Dump
 	 */
 	private function analyseVarName($trace, $val)
 	{
-		/* hard mode */
-//		$const = '[a-zA-Z_]+[a-zA-Z0-9_]*';
-//		$var = '\$' . $const . '(\[.*\])*';
-//
-//		$func = $const . '\(\)';
-//		$varFunc = $var . '\(\)';
-//
-//		$CONSTANT = $const;
-//		$simpleVarName = $var;
-//		/* no {} in [] except for string */
-//		$varNameArr = $var;
-//
-//		$funcCall = $func;
-//		$varFuncCall = $varFunc;
-//
-//		$classProp = $var . '->' . $const;
-//		$classMethod = $var . '->' . $func;
-//		$classMethod = $var . '->' . $varFunc;
-//
-//		$classConst = $const . '::' . $const;
-//		$classConst = $var . '::' . $const;
-//
-//		$staticClassProp = $const . '::' . $var;
-//		$staticClassProp = $var . '::' . $var;
-//		$staticClassProp = $var . '::\$' . $var;
-//		$staticClassProp = $var . '::\${' . $var . '}';
-//
-//		$staticClassMethod = $const . '::' . $func;
-//		$staticClassMethod = $var . '::' . $varFunc;
-//		$staticClassMethod = $var . '::{' . $var . '}\(\)';
-
-
-
-
-
-		/*
-		 * old regExp
-		 */
-//		//		$varNameSymbol = '[a-zA-Z0-9_]+';
-////		$varNameArr = '(\[\'.*\'\]|\[".*"\]|\[.*\])*';
-//		$varType = array(
-//			'classConst' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '::?' . $varNameArr . '/',
-//			'staticProp' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::\$(' . $varNameSymbol . '|{\$' . $varNameSymbol . $varNameArr . '})/',
-//			'staticMethod' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '::(' . $varNameSymbol . '\(|{$' . $varNameSymbol . $varNameArr . '}\()/',
-//			'prop' => '/(?<=' . $this->funcName . '\()\$' . $varNameSymbol . $varNameArr . '->\$?' . $varNameSymbol . $varNameArr . '/',
-////			'prop' => '/(?<=' . $this->funcName . '\()(\$|\${\$)' . $varNameSymbol . $varNameArr . '}?->\$?({' . $varNameSymbol . '/',
-//			'localGlobal' => '/(?<=' . $this->funcName . '\()\$(' . $varNameSymbol . ')(' . $arr . ')/',
-//			'globalConst' => '/(?<=' . $this->funcName . '\()(?<=\()' . $varNameSymbol . $varNameArr . '/',
-//			'val' => '/(?<=' . $this->funcName . '\().*/',
-//		);
-//
-////		${$as[1][1]}->${$asdf[1][1]} = 123;
-
-		/*
-		 * @todo call of same type in side $obj->meth->meth() self::{self::$var}();
-		 */
-
-		/*
-		 * simplified form 
-		 */
 		$delim = '/';
 		$funcName = '(?<=' . $this->funcName . '\()';
-
-		$onlyValNoVar = '.*';
-
-		$globalConst = '[a-zA-Z0-9_]+'; /* global constant *//* {} are only for variables */
-		$localGlobal = '\$(' . $globalConst . ')(\[.*\])*'; /* global/local variable *//* no {} in [] except for string */
-
-		$func = '\$?' . $globalConst . '(\[.*\])*\(.*\)(?=\);)'; /* function call by variable */
-
-		$prop = $localGlobal . '->{?\$?' . $globalConst . '(\[.*\])*}?'; /* property */
-		$method = $prop . '\(.*\)(?=\);)'; /* method */
-
-		$classConst = '\$?' . $globalConst . '(\[.*\])*::' . $globalConst; /* class constant */
-		$staticProp = '\$?' . $globalConst . '(\[.*\])*::\$?{?' . $localGlobal . '}?'; /* static property */
-		$staticMethod = '\$?' . $globalConst . '(\[.*\])*::{?\$?' . $globalConst . '(\[.*\])*}?\(.*\)(?=\);)'; /* static method */
+		$globalConst = '[a-zA-Z0-9_]+'; /* {} are only for variables */
+		$localGlobal = '\$(' . $globalConst . ')(\[.*\])*'; /* no {} in [] except for string */
+		$class = '\$?' . $globalConst . '(\[.*\])*';
+		$classInBraces = '{?' . $class . '}?';
+		$prop = $localGlobal . '->' . $classInBraces;
+		$funcEnd = '\(.*\)(?=\);)';
 
 		$varType = array(
-			'staticMethod' => $delim . $funcName . $staticMethod . $delim,
-			'staticProp' => $delim . $funcName . $staticProp . $delim,
-			'classConst' => $delim . $funcName . $classConst . $delim,
-			'method' => $delim . $funcName . $method . $delim,
+			'staticMethod' => $delim . $funcName . $class . '::' . $classInBraces . $funcEnd . $delim,
+			'staticProp' => $delim . $funcName . $class . '::\$?{?' . $localGlobal . '}?' . $delim,
+			'classConst' => $delim . $funcName . $class . '::' . $globalConst . $delim,
+			'method' => $delim . $funcName . $prop . $funcEnd . $delim,
 			'prop' => $delim . $funcName . $prop . $delim,
-			'func' => $delim . $funcName . $func . $delim,
+			'func' => $delim . $funcName . $class . $funcEnd . $delim,
 			'localGlobal' => $delim . $funcName . $localGlobal . $delim,
 			'globalConst' => $delim . $funcName . $globalConst . $delim,
-			'val' => $delim . $funcName . $onlyValNoVar . $delim,
+			'val' => $delim . $funcName . '.*' . $delim,
 		);
 
 		$subject = file($trace['file'])[$trace['line'] - 1];
