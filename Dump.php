@@ -102,6 +102,27 @@ class Dump
 	private $onlyValNoVar = FALSE;
 
 	/**
+	 * hold if input is only a value and no variable
+	 *
+	 * @var boolean $funcCallNoVar;
+	 */
+	private $funcCallNoVar = FALSE;
+
+	/**
+	 * hold if input is only a value and no variable
+	 *
+	 * @var boolean $methodCallNoVar;
+	 */
+	private $methodCallNoVar = FALSE;
+
+	/**
+	 * hold if input is only a value and no variable
+	 *
+	 * @var boolean $staticMethodCallNoVar;
+	 */
+	private $staticMethodCallNoVar = FALSE;
+
+	/**
 	 * hold if variable name was found
 	 * 
 	 * @var boolean $varNameFound
@@ -121,9 +142,9 @@ class Dump
 				'staticMethod' => 'static method',
 				'prop' => 'Class property',
 				'method' => 'Class method',
-				'global' => 'GOBAL variable',
+				'global' => 'GLOBAL variable',
 				'local' => 'local variable',
-				'globalConst' => 'global CONSTANT',
+				'globalConst' => 'GLOBAL CONSTANT',
 			),
 		),
 		'val' => array(
@@ -241,6 +262,9 @@ class Dump
 	{
 		if($this->getAccess()){
 			$this->onlyValNoVar = FALSE;
+			$this->funcCallNoVar = FALSE;
+			$this->methodCallNoVar = FALSE;
+			$this->staticMethodCallNoVar = FALSE;
 			$this->strWasEncoded = FALSE;
 
 			if(($varName = $this->getVarName($var)) === FALSE){
@@ -426,27 +450,100 @@ class Dump
 	 */
 	private function analyseVarName($trace, $val)
 	{
+		/* hard mode */
+//		$const = '[a-zA-Z_]+[a-zA-Z0-9_]*';
+//		$var = '\$' . $const . '(\[.*\])*';
+//
+//		$func = $const . '\(\)';
+//		$varFunc = $var . '\(\)';
+//
+//		$CONSTANT = $const;
+//		$simpleVarName = $var;
+//		/* no {} in [] except for string */
+//		$varNameArr = $var;
+//
+//		$funcCall = $func;
+//		$varFuncCall = $varFunc;
+//
+//		$classProp = $var . '->' . $const;
+//		$classMethod = $var . '->' . $func;
+//		$classMethod = $var . '->' . $varFunc;
+//
+//		$classConst = $const . '::' . $const;
+//		$classConst = $var . '::' . $const;
+//
+//		$staticClassProp = $const . '::' . $var;
+//		$staticClassProp = $var . '::' . $var;
+//		$staticClassProp = $var . '::\$' . $var;
+//		$staticClassProp = $var . '::\${' . $var . '}';
+//
+//		$staticClassMethod = $const . '::' . $func;
+//		$staticClassMethod = $var . '::' . $varFunc;
+//		$staticClassMethod = $var . '::{' . $var . '}\(\)';
 
-		$varNameSymbol = '[a-zA-Z0-9_]+';
-		$varNameArr = '(\[\'.*\'\]|\[".*"\]|\[.*\])*';
+
+
+
+
+		/*
+		 * old regExp
+		 */
+//		//		$varNameSymbol = '[a-zA-Z0-9_]+';
+////		$varNameArr = '(\[\'.*\'\]|\[".*"\]|\[.*\])*';
+//		$varType = array(
+//			'classConst' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '::?' . $varNameArr . '/',
+//			'staticProp' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::\$(' . $varNameSymbol . '|{\$' . $varNameSymbol . $varNameArr . '})/',
+//			'staticMethod' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '::(' . $varNameSymbol . '\(|{$' . $varNameSymbol . $varNameArr . '}\()/',
+//			'prop' => '/(?<=' . $this->funcName . '\()\$' . $varNameSymbol . $varNameArr . '->\$?' . $varNameSymbol . $varNameArr . '/',
+////			'prop' => '/(?<=' . $this->funcName . '\()(\$|\${\$)' . $varNameSymbol . $varNameArr . '}?->\$?({' . $varNameSymbol . '/',
+//			'localGlobal' => '/(?<=' . $this->funcName . '\()\$(' . $varNameSymbol . ')(' . $arr . ')/',
+//			'globalConst' => '/(?<=' . $this->funcName . '\()(?<=\()' . $varNameSymbol . $varNameArr . '/',
+//			'val' => '/(?<=' . $this->funcName . '\().*/',
+//		);
+//
+////		${$as[1][1]}->${$asdf[1][1]} = 123;
+
+		/*
+		 * @todo call of same type in side $obj->meth->meth() self::{self::$var}();
+		 */
+
+		/*
+		 * simplified form 
+		 */
+		$delim = '/';
+		$funcName = '(?<=' . $this->funcName . '\()';
+
+		$onlyValNoVar = '.*';
+
+		$globalConst = '[a-zA-Z0-9_]+'; /* global constant *//* {} are only for variables */
+		$localGlobal = '\$(' . $globalConst . ')(\[.*\])*'; /* global/local variable *//* no {} in [] except for string */
+
+		$func = '\$?' . $globalConst . '(\[.*\])*\(.*\)(?=\);)'; /* function call by variable */
+
+		$prop = $localGlobal . '->{?\$?' . $globalConst . '(\[.*\])*}?'; /* property */
+		$method = $prop . '\(.*\)(?=\);)'; /* method */
+
+		$classConst = '\$?' . $globalConst . '(\[.*\])*::' . $globalConst; /* class constant */
+		$staticProp = '\$?' . $globalConst . '(\[.*\])*::\$?{?' . $localGlobal . '}?'; /* static property */
+		$staticMethod = '\$?' . $globalConst . '(\[.*\])*::{?\$?' . $globalConst . '(\[.*\])*}?\(.*\)(?=\);)'; /* static method */
 
 		$varType = array(
-			'classConst' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '::?' . $varNameArr . '/',
-			'staticProp' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '+::\$(' . $varNameSymbol . '|{\$' . $varNameSymbol . $varNameArr . '})/',
-			'staticMethod' => '/(?<=' . $this->funcName . '\()\$?' . $varNameSymbol . '::(' . $varNameSymbol . '\(|{$' . $varNameSymbol . $varNameArr . '}\()/',
-			'prop' => '/(?<=' . $this->funcName . '\()\$' . $varNameSymbol . $varNameArr . '->\$?' . $varNameSymbol . $varNameArr . '/',
-//			'prop' => '/(?<=' . $this->funcName . '\()(\$|\${\$)' . $varNameSymbol . $varNameArr . '}?->\$?({' . $varNameSymbol . '/',
-			'localGlobal' => '/(?<=' . $this->funcName . '\()\$(' . $varNameSymbol . ')(' . $arr . ')/',
-			'globalConst' => '/(?<=' . $this->funcName . '\()(?<=\()' . $varNameSymbol . $varNameArr . '/',
-			'val' => '/(?<=' . $this->funcName . '\().*/',
+			'staticMethod' => $delim . $funcName . $staticMethod . $delim,
+			'staticProp' => $delim . $funcName . $staticProp . $delim,
+			'classConst' => $delim . $funcName . $classConst . $delim,
+			'method' => $delim . $funcName . $method . $delim,
+			'prop' => $delim . $funcName . $prop . $delim,
+			'func' => $delim . $funcName . $func . $delim,
+			'localGlobal' => $delim . $funcName . $localGlobal . $delim,
+			'globalConst' => $delim . $funcName . $globalConst . $delim,
+			'val' => $delim . $funcName . $onlyValNoVar . $delim,
 		);
 
-		${$as[1][1]}->${$asdf[1][1]} = 123;
-		$subject = file($trace['file'])[$trace['line'] -
-				1];
-		if(preg_match($varType['classConst'], $subject, $match)){
+		$subject = file($trace['file'])[$trace['line'] - 1];
+		if(preg_match($varType['staticMethod'], $subject, $match)){
+			$this->staticMethodCallNoVar = TRUE;
 			return array(
-				'type' => 'classConst',
+				'type' => 'val',
 				'varName' => $match[0]
 			);
 		}
@@ -456,26 +553,31 @@ class Dump
 				'varName' => $match[0]
 			);
 		}
+		elseif(preg_match($varType['classConst'], $subject, $match)){
+			return array(
+				'type' => 'classConst',
+				'varName' => $match[0]
+			);
+		}
+		elseif(preg_match($varType['method'], $subject, $match)){
+			$this->methodCallNoVar = TRUE;
+			return array(
+				'type' => 'val',
+				'varName' => $match[0]
+			);
+		}
 		elseif(preg_match($varType['prop'], $subject, $match)){
 			return array(
 				'type' => 'prop',
 				'varName' => $match[0]
 			);
 		}
-		elseif(preg_match($varType['globalConst'], $subject, $match)){
-			if(array_key_exists($match[0], (array)get_defined_constants(TRUE)['user'])){
-				return array(
-					'type' => 'globalConst',
-					'varName' => $match[0]
-				);
-			}
-			else{
-				/* float is only represented by numbers */
-				$this->onlyValNoVar = TRUE;
-				return array(
-					'type' => 'val',
-				);
-			}
+		elseif(preg_match($varType['func'], $subject, $match)){
+			$this->funcCallNoVar = TRUE;
+			return array(
+				'type' => 'val',
+				'varName' => $match[0]
+			);
 		}
 		else if(preg_match($varType['localGlobal'], $subject, $match)){
 			if(eval('return ' . $match[0] . ';') === $val OR eval('return $GLOBALS["' . $match[1] . '"]' . $match[2] . ';') === $val){
@@ -491,7 +593,22 @@ class Dump
 				);
 			}
 		}
-		else if(preg_match($varType['val'], $subject, $match)){
+		elseif(preg_match($varType['globalConst'], $subject, $match)){
+			if(get_defined_constants(TRUE)['user'][$match[0]]){
+				return array(
+					'type' => 'globalConst',
+					'varName' => $match[0]
+				);
+			}
+			else{
+				/* float is only represented by numbers */
+				$this->onlyValNoVar = TRUE;
+				return array(
+					'type' => 'val',
+				);
+			}
+		}
+		elseif(preg_match($varType['val'], $subject, $match)){
 			/* only for string value without variable */
 			$this->onlyValNoVar = TRUE;
 			return array(
@@ -938,6 +1055,24 @@ class Dump
 		if($this->onlyValNoVar){
 			$noVar = $this->createTag('span');
 			$noVar = $this->appendContent($noVar, 'Input is only a VALUE and no variable!');
+			$pre = $this->appendContent($pre, $noVar);
+			$pre = $this->appendContent($pre, '<br>');
+		}
+		if($this->funcCallNoVar){
+			$noVar = $this->createTag('span');
+			$noVar = $this->appendContent($noVar, 'Input is only the return VALUE of a called function!');
+			$pre = $this->appendContent($pre, $noVar);
+			$pre = $this->appendContent($pre, '<br>');
+		}
+		if($this->methodCallNoVar){
+			$noVar = $this->createTag('span');
+			$noVar = $this->appendContent($noVar, 'Input is only the return VALUE of a called method!');
+			$pre = $this->appendContent($pre, $noVar);
+			$pre = $this->appendContent($pre, '<br>');
+		}
+		if($this->staticMethodCallNoVar){
+			$noVar = $this->createTag('span');
+			$noVar = $this->appendContent($noVar, 'Input is only the return VALUE of a called static method!');
 			$pre = $this->appendContent($pre, $noVar);
 			$pre = $this->appendContent($pre, '<br>');
 		}

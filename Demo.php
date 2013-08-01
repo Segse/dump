@@ -1,7 +1,4 @@
 <?php
-   
-
-
 
 /*
  * test cases for dump.php
@@ -351,7 +348,6 @@ function demoConst()
 
 	demoVarDump('class constA9{		const CONSTANT = 1;	}	class constB9 extends constA9{		const CONSTANT = "constant value";		}	$class = new constB9();	$classname = "constB9"; var_dump($classname::CONSTANT);');
 	demoDump('class constA10{		const CONSTANT = 1;	}	class constB10 extends constA10{		const CONSTANT = "constant value";	}	$class = new constB10();	$classname = "constB10";	dump($classname::CONSTANT);');
-	seperator('dashed');
 }
 
 /**
@@ -371,68 +367,28 @@ function demoVarName()
 	echo buildDemoDump('DOES NOT EXIST!');
 	seperator('dotted');
 
-	demoDump('dump($obj->$var);');
-	demoDump('class testVarName{public $asdf = 123;private $asdf2 = 123;}$obj = new testVarName();$var = "asdf";dump($obj->$var);');
-	/*
-	 * better test case und ausgabe von function return
-	 */
-	demoDump('function test2($var, $var2 = 1){return $var+1;}$var = "test2";dump($var("2"));');
-	demoDump('dump($obj->$var);');
+	demoDump('dump(123);');
+	demoDump('$asdf = 123;	dump("{$asdf}");');
 
+	demoDump('define("ASDF", 12345);	dump(ASDF);');
 
-	/*
-	 * global local cases
-	 */
-	demoDump('function test12()	{		$asdf = 1;		dump($asdf);	}	test12();');
-	demoDump('function test123()	{		global $asdf;		$asdf = 2;		dump($asdf);	}	test123();');
-	demoDump('$GLOBALS["asdf"] = 3;	dump($GLOBALS["asdf"]);');
-	demoDump('$GLOBALS["asdf"] = 4;	global $asdf;	dump($asdf);');
-	demoDump('$GLOBALS["asdf"] = 5;	function test1234()	{		global $asdf;		dump($asdf);	}	test1234();');
-	demoDump('dump($GLOBALS[1]["asdf"][2] = 6);');
-	demoDump('dump($arr[1]["asdf"][2] = 7);');
-	demoDump('global $arr;	dump($arr[1]["asdf"][2] = 7);');
-	demoDump('final class arrTest23	{		public static function func()		{			return TRUE;		}	}	$arr = array(array(0, "arrTest23"), 1, 5, "func");	dump($arr[0][1]::$arr[$arr[2] = 3]());');
-	demoDump('final class arrTest24	{		public static $prop = 4;	}	$arr = array(array(0, "arrTest24"), 1, 5, "prop");	dump($arr[0][1]::${$arr[$arr[2] = 3]});');
+	demoDump('$GLOBALS["var"][1][\'wer\'] = 2;	dump($GLOBALS["var"][1]["wer"]);');
+	demoDump('$var = 123;	function testGlobal()	{		global $var;		dump($var = 345);	}	testGlobal();');
 
-	$var = 12;
-//	$arr[0][1]->$arr[$arr[2]];
-	exit;
-//
-//
-//class test{
-//
-//	public function mu(){
-//		global $var;
-//		$test = 4;
-//		$var = 5;
-//		return $GLOBALS['aa'] + asdf + $GLOBALS['var'] + $test + $var;
-//	}
-//
-//}
-//
-//$o = new test();
-//var_dump($o->mu());
-//var_dump((array)get_defined_vars());
-//
-//
-//
-//
-//foreach((array)get_defined_vars()['GLOBALS']as $key => $value){
-//	var_dump($key . '=>' . $value);
-//	if($key === 'var' AND $value === 5){
-//		var_dump($value);
-//	}
-//}
-//
-//exit;
-	//$GLOBAsLS['asdfa']["asd"][12] = 1;
-//dump($GLOBAsLS['asdfa']["asd"][12]);
-//var_dump($GLOBALS);
-//var_dump($GLOBALS['asdfa']);
-//var_dump($GLOBALS['asdfa']["asd"]);
-//var_dump($GLOBALS['asdfa']["asd"][12]);
-//var_dump(eval('echo $GLOBALS["asdfa"]["asd"][12];'));
-//exit;
+	demoDump('function localTest()	{		dump($var = 4);	}	localTest();');
+
+	demoDump('function localTest2()	{		return "func";	}	dump(localTest2());');
+	demoDump('function localTest3()	{		return "func";	}	$var = array(0, "localTest3");	dump($var[1]());');
+
+	demoDump('$arr = array(0 => 1, array(0, 2 => "test4"));	function test3()	{		return 2;	}	function test4()	{		return 123;	}	dump($arr[$arr[0]][test3()]());');
+
+	demoDump('class testClass	{		public $prop = 3;	}	$obj = new testClass();	dump($obj->prop);');
+	demoDump('class testClass2	{		public $prop = 3;	}	$obj = new testClass2();	$var = array(0, "prop");	dump($obj->{$var[1]});');
+	demoDump('class testClass3	{		public function method()		{			return 4;		}		public function method2($var1, $var2)		{			return $var1 + $var2;		}	}	$var = "method";	$obj = new testClass3();	dump($obj->method2($obj->{$var}(), 6));');
+
+	demoDump('class testClass5	{		const test = 123;	}	dump(testClass5::test);');
+	demoDump('class testClass6	{		const test = 123;	}	$obj = new testClass6();	dump($obj::test);');
+	demoDump('class testClass7	{		const _testConst = 6;		public static $prop = 3;		public static $prop2 = array(			0 => 1,			1 => array(				0 => 1,				1 => "test"			)		);		public static function method()		{			dump(self::{self::$prop2[1][1]}());		}		public static function test()		{			return 10;		}	}	testClass7::method();');
 }
 
 /**
@@ -502,132 +458,4 @@ function demoClosure()
 //	demoDump('$filename = "Dump.php";$handle = fopen($filename, "r");dump($handle);');
 }
 
-//	demoDump('
-//class MyClass
-//{
-//    const CONSTANT = "constant value";
-//
-//    function showConstant() {
-//        dump(self::CONSTANT);
-//    }
-//}
-//
-//dump(MyClass::CONSTANT);
-//
-//$classname = "MyClass";
-//dump($classname::CONSTANT); 
-//
-//$class = new MyClass();
-//$class->showCONSTANT();
-//
-//dump($class::CONSTANT);');
-//	class parentClass
-//	{
-//
-//		public $popsVar = 8989989;
-//
-//		const popsVar2 = 8989989;
-//
-//	}
-//
-//	class MyClass extends parentClass
-//	{
-//
-//		public static $asdf = 1234;
-//
-//		public $asdf23 = 1333234;
-//
-//		const CONSTANT = 'constant value';
-//
-//		function showConstant()
-//		{
-//
-//			dump(self::CONSTANT);
-//			dump($this->CONSTANT);
-//			dump(self::popsVar2);
-//			dump(parent::popsVar2);
-//		}
-//
-//	}
-//
-//	dump(MyClass::$asdf);
-//	dump(MyClass::CONSTANT);
-//	$classname = "MyClass";
-//	dump($classname::CONSTANT);
-//	dump($classname::$asdf);
-////
-//	$class = new MyClass();
-//	$class->showCONSTANT();
-//	dump($class->asdf23);
-//	$varas = 'asdf';
-//	dump($varas);
-//	define('ASDF_12sd', 123455);
-//	dump(ASDF_12sd);
-//	dump(123);
-//	dump($class->popsVar);
-//	dump(MyClass::popsVar2);
-//	dump(parentClass::popsVar2);
-//
-//	dump($class::CONSTANT);
-//	define('ASDF_123_ASDf', 123);
-//	$this->foo_foo = "knight";
-//	self::$bar_123 = array(1, 2, 3);
-//	parent::$bar_1232 = array(1, 2, 3);
-//	$baz = 12345;
-//	varName2($val);
-//	varName($this->foo_foo);
-//	varName(self::$bar_123);
-//	varName(parent::$bar_1232);
-//	varName(ASDF_123_ASDf);
-//	varName($baz);
-//	
-//	
-$xml = '
-
-<? xml version = "1.0" encoding = "UTF-8" ?>
-<mediamarkt>
-	<hardware>1</hardware>
-	<tariff>2</tariff>
-	<option>3</option>
-</mediamarkt>';
-//$parser = xml_parser_create();
-//var_dump($parser);
-//var_dump(xml_parse($parser, $xml));
-//dump($parser);
-////$obj = simplexml_load_string($xml);
-//$obj = simplexml_load_file('../mediamarkt.xml');
-////var_dump($obj);
-//$doc = new DOMDocument();
-//$doc->appendChild(new DOMNode::)
-//var_dump($doc);
-//$doc->loadXML($xml);
-//var_dump($doc);
-//var_dump($doc->saveXML());
-//xml = (new DOMParser()).parseFromString(xml, "text/xml")
-//dump(xml);
-//
-//$trace = array_pop(debug_backtrace());
-//$vLine = file($trace['file']);
-//$fLine = $vLine[$trace['line'] - 1];
-//var_dump($fLine);
-//$delim = '/';
-//$staticExp = '\w+::\$\w+';
-//$objExp = '\$\w+->\w+';
-//$localExp = '\$\w+';
-//$constantExp = '(?<=\()\w+(?=,|\))';
-//
-//preg_match($delim . $staticExp . '|' . $objExp . '|' . $localExp . '|' . $constantExp . $delim, $fLine, $match);
-//var_dump($match);
-//echo '<br>';
-//		define('ASDF_123_ASDf', 123);
-//		$this->foo_foo = "knight";
-//		self::$bar_123 = array(1, 2, 3);
-//		parent::$bar_1232 = array(1, 2, 3);
-//		$baz = 12345;
-//		varName($var);
-//		varName($this->foo_foo);
-//		varName(self::$bar_123);
-//		varName(parent::$bar_1232);
-//		varName(ASDF_123_ASDf);
-//		varName($baz);
 ?>
